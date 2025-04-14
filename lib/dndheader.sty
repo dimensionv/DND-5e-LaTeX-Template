@@ -7,6 +7,12 @@
   {
 \RequirePackage {fancyhdr} % Adaptation of the footers
 
+\bool_new:N \g__dnd_dont_skip_bg_bool
+\bool_gset_false:N \g__dnd_dont_skip_bg_bool
+
+\bool_new:N \g__dnd_dont_skip_ft_bool
+\bool_gset_false:N \g__dnd_dont_skip_ft_bool
+
 % Setup for custom footer
 \pagestyle {fancy}
 
@@ -35,27 +41,30 @@
 
 % Header is used to include the page background
 \fancyhead{
-  \bool_if:NT \l__dnd_show_background_bool
-    {
-    \begin{tikzpicture}[remember~picture,overlay]
-      \node[inner~sep=0pt] at (current~page.center) {\includegraphics[width=\paperwidth,height=\paperheight]{img/paper}};
-    \end{tikzpicture}
+  \bool_if:nT {\g__dnd_dont_skip_bg_bool || \int_compare_p:n {\value{page} > 1}} {%
+    \bool_if:NT \l__dnd_show_background_bool {
+      \begin{tikzpicture}[remember~picture,overlay]
+        \node[inner~sep=0pt] at (current~page.center) {\includegraphics[width=\paperwidth,height=\paperheight]{img/paper}};
+      \end{tikzpicture}
+      \bool_gset_true:N \g__dnd_dont_skip_bg_bool
     }
+  }
 }
 
 % Left-even page footer
 \fancyfoot[LE]{%
-    \DndFontFooter \leftmark
-    \begin{tikzpicture}[remember~picture,overlay]
-      \bool_if:NT \l__dnd_show_footer_scroll_bool {
-        \node[xscale=-1,inner~sep=0pt,anchor=south,nearly~opaque] at (current~page.south) {\includegraphics[width=\paperwidth,height=.6in]{img/footerscroll}};
-      }
-      \node[inner~sep=0pt,anchor=south,xshift=.28in,yshift=.39in] at (current~page.south~west) {\DndFontPageNumber \thepage};
-    \end{tikzpicture}
-  }
+  \DndFontFooter \leftmark
+  \begin{tikzpicture}[remember~picture,overlay]
+    \bool_if:NT \l__dnd_show_footer_scroll_bool {
+      \node[xscale=-1,inner~sep=0pt,anchor=south,nearly~opaque] at (current~page.south) {\includegraphics[width=\paperwidth,height=.6in]{img/footerscroll}};
+    }
+    \node[inner~sep=0pt,anchor=south,xshift=.28in,yshift=.39in] at (current~page.south~west) {\DndFontPageNumber \thepage};
+  \end{tikzpicture}
+}
 
 % Right-odd page footer
 \fancyfoot[RO]{%
+  \bool_if:nT {\g__dnd_dont_skip_ft_bool || \int_compare_p:n {\value{page} > 1}} {%
     \DndFontFooter \leftmark
     \begin{tikzpicture}[remember~picture,overlay]
       \bool_if:NT \l__dnd_show_footer_scroll_bool {
@@ -63,7 +72,9 @@
       }
       \node[inner~sep=0pt,anchor=south,xshift=-.28in,yshift=.39in] at (current~page.south~east) {\DndFontPageNumber \thepage};
     \end{tikzpicture}
+    \bool_gset_true:N \g__dnd_dont_skip_ft_bool
   }
+}
 
 \fancypagestyle {plain} {}
 
